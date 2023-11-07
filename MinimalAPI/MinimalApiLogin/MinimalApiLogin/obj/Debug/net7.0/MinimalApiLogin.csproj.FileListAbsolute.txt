@@ -81,3 +81,5 @@ C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLo
 C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLogin\obj\Debug\net7.0\MinimalApiLogin.pdb
 C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLogin\obj\Debug\net7.0\MinimalApiLogin.genruntimeconfig.cache
 C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLogin\obj\Debug\net7.0\ref\MinimalApiLogin.dll
+C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLogin\bin\Debug\net7.0\AutoMapper.dll
+C:\Users\ederh\Projeto-Minimal-API-LOGIN\MinimalAPI\MinimalApiLogin\MinimalApiLogin\bin\Debug\net7.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

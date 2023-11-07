@@ -1,9 +1,11 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MinimalApiLogin.Data;
+using MinimalApiLogin.Data.DTO;
 using MinimalApiLogin.Models;
 using MinimalApiLogin.Service;
 using System.Text;
@@ -14,11 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddDbContext<AppDbContext>(opts => { opts.UseSqlServer(builder.Configuration.GetConnectionString("ConexaoPadrao")); });
 builder.Services.AddIdentity<Usuario, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -33,6 +32,8 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 
@@ -51,19 +52,18 @@ app.UseAuthentication();
 app.MapPost("/registro", async (
     SignInManager<Usuario> signInManager,
     UserManager<Usuario> userManager,
-    IOptions<TokenService> appJwtSettings,
-    Usuario usuario) =>
+    TokenService tokenService,
+    CriarUsuarioDTO usuario,
+    IMapper mapper) =>
 {
     if (usuario == null)
         return Results.BadRequest("Usuario nao informado");
-    var user = new Usuario
-    { UserName = usuario.UserName,
-        Email = usuario.Email  
-    };
-    var result = await userManager.CreateAsync(user, usuario.PasswordHash);
+    Usuario user = mapper.Map<Usuario>(usuario);
+    var result = await userManager.CreateAsync(user, usuario.Password);
     if (!result.Succeeded)
         return Results.BadRequest(result.Errors);
-    return Results.Ok();
+    var tokenJwt = tokenService.GenerateToken(user);
+    return Results.Ok(tokenJwt);
 
 }).ProducesValidationProblem()
 .Produces(StatusCodes.Status200OK)

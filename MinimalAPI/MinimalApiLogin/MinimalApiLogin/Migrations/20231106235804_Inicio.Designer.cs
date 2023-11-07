@@ -12,8 +12,8 @@ using MinimalApiLogin.Data;
 namespace MinimalApiLogin.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231106192626_tabela usuario")]
-    partial class tabelausuario
+    [Migration("20231106235804_Inicio")]
+    partial class Inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -169,9 +169,6 @@ namespace MinimalApiLogin.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DataNascimento")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
