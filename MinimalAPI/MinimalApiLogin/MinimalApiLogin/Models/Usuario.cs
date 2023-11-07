@@ -4,8 +4,5 @@ namespace MinimalApiLogin.Models;
 
 public class Usuario : IdentityUser
 {
-     public Usuario() : base()
-    {
-
-    }
+     public Usuario() : base(){}
 }

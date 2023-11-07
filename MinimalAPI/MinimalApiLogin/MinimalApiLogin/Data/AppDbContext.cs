@@ -6,8 +6,5 @@ namespace MinimalApiLogin.Data;
 
 public class AppDbContext : IdentityDbContext<Usuario>
 {
-    public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts)
-    {
-        
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts){}
 }

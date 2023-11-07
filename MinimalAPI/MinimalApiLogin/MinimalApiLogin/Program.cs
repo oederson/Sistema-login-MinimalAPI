@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MinimalApiLogin.Data;
 using MinimalApiLogin.Data.DTO;
@@ -69,6 +68,28 @@ app.MapPost("/registro", async (
 .Produces(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status400BadRequest)
 .WithName("RegistroUsuario")
+.WithTags("Usuario");
+
+app.MapPost("/login", async (
+    SignInManager<Usuario> signInManager,
+    UserManager<Usuario> userManager,
+    TokenService tokenService,
+    LoginUsuarioDTO usuario,
+    IMapper mapper) =>
+{
+    if (usuario == null)
+        return Results.BadRequest("Usuario nao informado");
+    Usuario user = mapper.Map<Usuario>(usuario);
+    var result = await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false);
+    if (!result.Succeeded)
+        return Results.BadRequest(result);
+    var tokenJwt = tokenService.GenerateToken(user);
+    return Results.Ok(tokenJwt);
+
+}).ProducesValidationProblem()
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status400BadRequest)
+.WithName("LoginUsuario")
 .WithTags("Usuario");
 
 app.Run();
