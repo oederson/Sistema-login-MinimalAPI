@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using MinimalApiLogin.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,7 +15,7 @@ namespace MinimalApiLogin.Service
         {
             _configuration = configuration;
         }
-        public string GenerateToken(Usuario usuario)
+        public ResponseModel GenerateToken(IdentityUser usuario, IList<string> roles)
         {
             Claim[] claims = new Claim[]
             {
@@ -22,15 +23,23 @@ namespace MinimalApiLogin.Service
                 new Claim("id", usuario.Id)
                 
             };
+            claims = claims.Concat(roles.Select(role => new Claim(ClaimTypes.Role, role))).ToArray();
+
+
             SymmetricSecurityKey chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SDASDASDFDSFDSFSDFSD2132314312312312"));
             var signinCredentials = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken
                 (
                 expires: DateTime.Now.AddMinutes(10),
                 claims: claims,
-                signingCredentials: signinCredentials
+                signingCredentials: signinCredentials                
                 );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            ResponseModel res = new ResponseModel() 
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Role = roles[0]
+            };
+            return res;
         }
     }
 }

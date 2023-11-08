@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,10 +10,20 @@ using MinimalApiLogin.Models;
 using MinimalApiLogin.Service;
 using System.Text;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://127.0.0.1:5173").AllowAnyHeader()
+                                .AllowAnyMethod();                                
+                      });
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(opts => { opts.UseSqlServer(builder.Configuration.GetConnectionString("ConexaoPadrao")); });
@@ -31,8 +42,16 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+builder.Services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminUserRole",
+        policy => policy.RequireRole("Admin", "User"));   
+});
+
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 
 var app = builder.Build();
 
@@ -45,10 +64,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseAuthorization();
+app.UseCors(MyAllowSpecificOrigins);
 
-//app.UseAuthorization();
+await CriarPerfisUsuariosAsync(app);
 
-app.MapPost("/registro", async (
+app.MapPost("/registro",[AllowAnonymous] async (
     SignInManager<Usuario> signInManager,
     UserManager<Usuario> userManager,
     TokenService tokenService,
@@ -61,8 +82,10 @@ app.MapPost("/registro", async (
     var result = await userManager.CreateAsync(user, usuario.Password);
     if (!result.Succeeded)
         return Results.BadRequest(result.Errors);
-    var tokenJwt = tokenService.GenerateToken(user);
-    return Results.Ok(tokenJwt);
+    var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
+    await userManager.AddToRoleAsync(usuariobd, "User");
+    IList<string> rolee = await userManager.GetRolesAsync(usuariobd);
+    return Results.Ok(tokenService.GenerateToken(usuariobd, rolee));
 
 }).ProducesValidationProblem()
 .Produces(StatusCodes.Status200OK)
@@ -70,8 +93,9 @@ app.MapPost("/registro", async (
 .WithName("RegistroUsuario")
 .WithTags("Usuario");
 
-app.MapPost("/login", async (
+app.MapPost("/login", [AllowAnonymous] async (
     SignInManager<Usuario> signInManager,
+
     UserManager<Usuario> userManager,
     TokenService tokenService,
     LoginUsuarioDTO usuario,
@@ -79,12 +103,11 @@ app.MapPost("/login", async (
 {
     if (usuario == null)
         return Results.BadRequest("Usuario nao informado");
-    Usuario user = mapper.Map<Usuario>(usuario);
-    var result = await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false);
-    if (!result.Succeeded)
-        return Results.BadRequest(result);
-    var tokenJwt = tokenService.GenerateToken(user);
-    return Results.Ok(tokenJwt);
+    if(await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false) != Microsoft.AspNetCore.Identity.SignInResult.Success)
+        return Results.BadRequest("Deu merda");
+    var usuariobd =  signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
+    IList<string> rolee = await userManager.GetRolesAsync(usuariobd);    
+    return Results.Ok(tokenService.GenerateToken(usuariobd, rolee));
 
 }).ProducesValidationProblem()
 .Produces(StatusCodes.Status200OK)
@@ -92,6 +115,22 @@ app.MapPost("/login", async (
 .WithName("LoginUsuario")
 .WithTags("Usuario");
 
+app.MapGet("/acesso",[Authorize (Roles ="Admin")]() => { return Results.Ok(); } ).ProducesValidationProblem()
+                                                                                 .Produces(StatusCodes.Status200OK)
+                                                                                 .Produces(StatusCodes.Status403Forbidden)
+                                                                                 .WithName("Acesso")
+                                                                                 .WithTags("Usuario");
+
 app.Run();
 
+async Task CriarPerfisUsuariosAsync(WebApplication app)
+{
+    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+    using (var scope = scopedFactory.CreateScope())
+    {
+        var service = scope.ServiceProvider.GetService<ISeedUserRoleInitial>();
+        await service.SeedRolesAsync();
+        await service.SeedUserAsync();
+    }
+}
 
