@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components"
-import { loginApi } from "../redux/apiChamada";
+import { loginUser, logOutUser } from '../redux/user/actions';
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 const Container = styled.div`
@@ -55,17 +56,25 @@ const Login = () => {
     
     const [username, setUsuario] = useState("");
     const [password, setSenha] = useState("");
-    
+    const dispatch = useDispatch();
+    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
+    console.log(currentUser);
     
     const navigate = useNavigate();
     const handleClick = async (e) => {
         e.preventDefault();
-        await loginApi( { username, password})
+        var res = await axios.create({baseURL: " https://localhost:7220"}).post("/login", {username, password} );
+        if(res != null){
+        dispatch(loginUser({token: res.data.token, role:res.data.role }))
+        }
+
         };
       
     useEffect(() => {
-       
-    }, []);
+       if(currentUser != null){
+        navigate("/")
+       }
+    }, [currentUser]);
     
       
 
@@ -88,8 +97,7 @@ const Login = () => {
             <Botao onClick={handleClick} >Entrar</Botao>
             
             <Linka>Esqueceu a senha ?</Linka>
-            <Linka>Criar nova conta</Linka>
-            <Linka>Vai ter que ter um eu nao sou robo</Linka>
+            <Link to="/cadastrar">Cadastrar um usuario</Link>            
         </Formulario>
     </Wrapper>
 </Container>
