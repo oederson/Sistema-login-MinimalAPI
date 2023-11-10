@@ -13,15 +13,14 @@ using System.Text;
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://127.0.0.1:5173").AllowAnyHeader()
-                                .AllowAnyMethod();                                
+                          policy.WithOrigins("http://127.0.0.1:5173")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();                                
                       });
 });
 builder.Services.AddEndpointsApiExplorer();
@@ -48,10 +47,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireAdminUserRole",
         policy => policy.RequireRole("Admin", "User"));   
 });
-
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
 var app = builder.Build();
 
@@ -61,12 +58,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors(MyAllowSpecificOrigins);
-
 await CriarPerfisUsuariosAsync(app);
 
 app.MapPost("/registro",[AllowAnonymous] async (
@@ -77,17 +72,14 @@ app.MapPost("/registro",[AllowAnonymous] async (
     IMapper mapper) =>
 {
     if (usuario == null)
-        return Results.BadRequest("Usuario nao informado");
-    Usuario user = mapper.Map<Usuario>(usuario);
-    var result = await userManager.CreateAsync(user, usuario.Password);
-    if (!result.Succeeded)
-        return Results.BadRequest(result.Errors);
+        return Results.BadRequest("Usuario nao informado"); 
+    if (await userManager.CreateAsync(mapper.Map<Usuario>(usuario), usuario.Password) != IdentityResult.Success)
+        return Results.BadRequest("Usuario não pode ser cadastrado");
     var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
     await userManager.AddToRoleAsync(usuariobd, "User");
-    IList<string> rolee = await userManager.GetRolesAsync(usuariobd);
-    return Results.Ok(tokenService.GenerateToken(usuariobd, rolee));
-
-}).ProducesValidationProblem()
+    return Results.Ok(tokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
+})
+.ProducesValidationProblem()
 .Produces(StatusCodes.Status200OK)
 .Produces(StatusCodes.Status400BadRequest)
 .WithName("RegistroUsuario")
@@ -95,7 +87,6 @@ app.MapPost("/registro",[AllowAnonymous] async (
 
 app.MapPost("/login", [AllowAnonymous] async (
     SignInManager<Usuario> signInManager,
-
     UserManager<Usuario> userManager,
     TokenService tokenService,
     LoginUsuarioDTO usuario,
@@ -105,9 +96,8 @@ app.MapPost("/login", [AllowAnonymous] async (
         return Results.BadRequest("Usuario nao informado");
     if(await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false) != Microsoft.AspNetCore.Identity.SignInResult.Success)
         return Results.BadRequest("Deu merda");
-    var usuariobd =  signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
-    IList<string> rolee = await userManager.GetRolesAsync(usuariobd);    
-    return Results.Ok(tokenService.GenerateToken(usuariobd, rolee));
+    var usuariobd =  signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username); 
+    return Results.Ok(tokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
 
 }).ProducesValidationProblem()
 .Produces(StatusCodes.Status200OK)
@@ -133,4 +123,3 @@ async Task CriarPerfisUsuariosAsync(WebApplication app)
         await service.SeedUserAsync();
     }
 }
-

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using MinimalApiLogin.Models;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -17,12 +18,17 @@ namespace MinimalApiLogin.Service
         }
         public ResponseModel GenerateToken(IdentityUser usuario, IList<string> roles)
         {
+            
+            
             Claim[] claims = new Claim[]
             {
                 new Claim("username", usuario.UserName),
-                new Claim("id", usuario.Id)
+                new Claim("id", usuario.Id),
                 
+
+
             };
+            
             claims = claims.Concat(roles.Select(role => new Claim(ClaimTypes.Role, role))).ToArray();
 
 
