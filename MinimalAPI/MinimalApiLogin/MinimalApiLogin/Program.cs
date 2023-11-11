@@ -105,11 +105,16 @@ app.MapPost("/login", [AllowAnonymous] async (
 .WithName("LoginUsuario")
 .WithTags("Usuario");
 
-app.MapGet("/acesso",[Authorize (Roles ="Admin")]() => { return Results.Ok(); } ).ProducesValidationProblem()
-                                                                                 .Produces(StatusCodes.Status200OK)
-                                                                                 .Produces(StatusCodes.Status403Forbidden)
-                                                                                 .WithName("Acesso")
-                                                                                 .WithTags("Usuario");
+app.MapGet("/usuarios",[Authorize (Roles ="Admin")](
+    UserManager<Usuario> userManager) => 
+{
+    return Results.Ok(userManager.Users.ToList());
+})
+.ProducesValidationProblem()
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status403Forbidden)
+.WithName("Acesso")
+.WithTags("Usuario");
 
 app.Run();
 
