@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components"
-import { loginUser, logOutUser } from '../redux/user/actions';
+import { loginUser } from '../redux/user/actions';
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -58,12 +58,11 @@ const Login = () => {
     const [password, setSenha] = useState("");
     const dispatch = useDispatch();
     const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
-    console.log(currentUser);
     
     const navigate = useNavigate();
     const handleClick = async (e) => {
         e.preventDefault();
-        var res = await axios.create({baseURL: " https://localhost:7220"}).post("/login", {username, password} );
+        var res = await axios.create({baseURL: "https://localhost:7023"}).post("/login", {username, password} );
         if(res != null){
         dispatch(loginUser({token: res.data.token, role:res.data.role }))
         }
@@ -74,11 +73,8 @@ const Login = () => {
        if(currentUser != null){
         navigate("/")
        }
-    }, [currentUser]);
-    
-      
+    }, [currentUser]); 
 
-    
   return (
     <Container>
     <Wrapper>

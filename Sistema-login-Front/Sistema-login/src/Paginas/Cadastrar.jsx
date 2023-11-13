@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import styled from "styled-components"
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+import axios from "axios";
+import { loginUser } from '../redux/user/actions';
+import { Link, useNavigate } from "react-router-dom";
 
 const Container = styled.div`
     width: 100%;
@@ -49,8 +52,9 @@ const Error = styled.span`
 `;
 
 const Cadastrar = () => { 
-
-   
+    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [usuario, setUsuario] = useState({
         username: "",
         password: "",
@@ -64,20 +68,25 @@ const Cadastrar = () => {
     const fazOsubmit = async(e) => {
         e.preventDefault();
         try{
-            var res = await axios.create({baseURL: " https://localhost:7220"}).post("/login", {username, password, repassword} );
+            console.log("Cheguei aqui");
+            var res = await axios.create({ baseURL: "https://localhost:7023" }).post("/registro", {
+            username: usuario.username,
+            password: usuario.password,
+            repassword: usuario.repassword
+        });
         if(res != null){
         dispatch(loginUser({token: res.data.token, role:res.data.role }))
-        }
-            
-            
-        }catch{
-            
+        }                      
+        }catch (error) {
+            console.error("Erro durante a requisição:", error);
         }
      };
  
-    useEffect(() => {
-       
-    }, []);
+     useEffect(() => {
+        if(currentUser != null){
+         navigate("/")
+        }
+     }, [currentUser]);
 
   return (
     <Container>
@@ -89,7 +98,7 @@ const Cadastrar = () => {
                 placeholder="username"
                 type="text"
                 name="username"
-                value={usuario.username}
+                
                 onChange={handleChange}
                 required
                 />
@@ -98,7 +107,7 @@ const Cadastrar = () => {
                 placeholder="password"
                 type="password"
                 name="password"
-                value={usuario.password}
+                
                 onChange={handleChange}
                 required
                 />
@@ -107,7 +116,7 @@ const Cadastrar = () => {
                 placeholder="repassword"
                 type="password"
                 name="repassword"
-                value={usuario.repassword}
+                
                 onChange={handleChange}
                 required
                 />
