@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +92,39 @@ app.MapGet("/usuarios", (
     [FromServices] UserManager<Usuario> userManager) =>
 {
     return Results.Ok(userManager.Users.ToList());
+}).RequireAuthorization("Admin");
+
+app.MapDelete("/usuario", async (
+    ClaimsPrincipal usePrincipal,
+    [FromBody] JsonElement requestBody,
+    [FromServices] UserManager<Usuario> userManager) =>
+{    
+    if (requestBody.TryGetProperty("id", out var idProperty) && idProperty.ValueKind == JsonValueKind.String)
+    {
+        var id = idProperty.GetString();
+
+        var usuario = await userManager.FindByIdAsync(id);
+
+        if (usuario == null)
+        {
+            return Results.NotFound($"Usuário com ID {id} não encontrado.");
+        }
+
+        var result = await userManager.DeleteAsync(usuario);
+
+        if (result.Succeeded)
+        {
+            return Results.Ok($"Usuário com ID {id} excluído com sucesso.");
+        }
+        else
+        {
+            return Results.BadRequest($"Falha ao excluir o usuário com ID {id}.");
+        }
+    }
+    else
+    {
+        return Results.BadRequest("Corpo da solicitação inválido. Certifique-se de incluir uma propriedade 'id' válida.");
+    }
 }).RequireAuthorization("Admin");
 
 app.Run();

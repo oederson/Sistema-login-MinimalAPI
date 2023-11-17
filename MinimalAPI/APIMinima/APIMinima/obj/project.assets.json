@@ -3648,11 +3648,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ederh\\Projeto-Minimal-API-LOGIN\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
+      "projectUniqueName": "C:\\Users\\ederh\\projeto-sistema-login\\Sistema-login-MinimalAPI\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
       "projectName": "APIMinima",
-      "projectPath": "C:\\Users\\ederh\\Projeto-Minimal-API-LOGIN\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
+      "projectPath": "C:\\Users\\ederh\\projeto-sistema-login\\Sistema-login-MinimalAPI\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
       "packagesPath": "C:\\Users\\ederh\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ederh\\Projeto-Minimal-API-LOGIN\\MinimalAPI\\APIMinima\\APIMinima\\obj\\",
+      "outputPath": "C:\\Users\\ederh\\projeto-sistema-login\\Sistema-login-MinimalAPI\\MinimalAPI\\APIMinima\\APIMinima\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ederh\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -3731,7 +3731,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

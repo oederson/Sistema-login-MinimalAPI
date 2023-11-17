@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hIJ+mYTbm8iH5uc+i8HqYngsg9TguiTPpIubD1Xarox3FMDpHroWg/wYDnO5BvXIIQO4F56kgHYrdFqvEbUuEw==",
+  "dgSpecHash": "hA7gCw6Qk7aVEuNWzH92avkv9Sj8wHyEuTpkBHEbFUywo/NKGX7jqgNaw7+pXLhAV+A7FFiC38uFvoqT14soPA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\ederh\\Projeto-Minimal-API-LOGIN\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
+  "projectFilePath": "C:\\Users\\ederh\\projeto-sistema-login\\Sistema-login-MinimalAPI\\MinimalAPI\\APIMinima\\APIMinima\\APIMinima.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ederh\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\ederh\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
