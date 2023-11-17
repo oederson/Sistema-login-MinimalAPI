@@ -28,7 +28,7 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer( opt =>
 {
     opt.RequireHttpsMetadata = false;
-    opt.SaveToken = true;
+    opt.SaveToken = false;
     opt.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = false,
@@ -80,10 +80,12 @@ app.MapPost("/login", async (
     [FromServices] UserManager<Usuario> userManager) =>
 {   
     if (usuario == null)
-        return Results.NotFound(new { message = "Invalid username or password" });
+        return Results.NotFound(new { message = "Invalid username or password" });    
     if (await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false) != Microsoft.AspNetCore.Identity.SignInResult.Success)
         return Results.BadRequest("Deu merda");
     var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
+    //Desativa o cookie no cabeçalho de resposta 
+    signInManager.Context.Response.Cookies.Delete(".AspNetCore.Identity.Application");
     return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
 });
 
@@ -126,6 +128,72 @@ app.MapDelete("/usuario", async (
         return Results.BadRequest("Corpo da solicitação inválido. Certifique-se de incluir uma propriedade 'id' válida.");
     }
 }).RequireAuthorization("Admin");
+
+app.MapPut("/atualizar-dados-usuario", async (
+    ClaimsPrincipal userPrincipal,
+    [FromServices] UserManager<Usuario> userManager,
+    [FromBody] AtualizarUsuarioDTO dadosAtualizados) =>
+{
+
+    var userId = userPrincipal.FindFirstValue("Id");
+    // Obtém o usuário do banco de dados
+    var usuario = await userManager.FindByIdAsync(userId);
+
+    if (usuario == null)
+    {
+        return Results.NotFound($"Usuário com ID {userId} não encontrado.");
+    }
+
+    // Atualiza as informações do usuário com base nos dados fornecidos no corpo da requisição
+    usuario.UserName = dadosAtualizados.Username;
+
+    // Salva as alterações no banco de dados
+    var result = await userManager.UpdateAsync(usuario);
+
+    if (result.Succeeded)
+    {
+        return Results.Ok($"Usuário com ID {userId} atualizado com sucesso.");
+    }
+    else
+    {
+        return Results.BadRequest($"Falha ao atualizar o usuário com ID {userId}.");
+    }
+}).RequireAuthorization("User");
+
+app.MapPut("/alterar-senha", async (
+    ClaimsPrincipal userPrincipal,
+    [FromServices] UserManager<Usuario> userManager,
+    [FromBody] AlterarSenhaDTO alterarSenhaDTO) =>
+{
+    var userId = userPrincipal.FindFirstValue("Id");
+    var usuario = await userManager.FindByIdAsync(userId);
+
+    if (usuario == null)
+    {
+        return Results.NotFound($"Usuário com ID {userId} não encontrado.");
+    }
+
+    // Verifique se a senha atual fornecida está correta
+    var senhaAtualCorreta = await userManager.CheckPasswordAsync(usuario, alterarSenhaDTO.SenhaAtual);
+
+    if (!senhaAtualCorreta)
+    {
+        return Results.BadRequest("Senha atual incorreta.");
+    }
+
+    // Altere a senha
+    var resultadoAlteracao = await userManager.ChangePasswordAsync(usuario, alterarSenhaDTO.SenhaAtual, alterarSenhaDTO.NovaSenha);
+
+    if (resultadoAlteracao.Succeeded)
+    {
+        return Results.Ok($"Senha do usuário com ID {userId} alterada com sucesso.");
+    }
+    else
+    {
+        return Results.BadRequest("Falha ao alterar a senha. Verifique os requisitos de senha.");
+    }
+}).RequireAuthorization("User");
+
 
 app.Run();
 
