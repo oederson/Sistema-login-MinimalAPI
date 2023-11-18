@@ -5,6 +5,7 @@ using APIMinima.Models;
 using APIMinima.Service;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -80,7 +81,7 @@ app.MapPost("/login", async (
     [FromServices] UserManager<Usuario> userManager) =>
 {   
     if (usuario == null)
-        return Results.NotFound(new { message = "Invalid username or password" });    
+        return Results.NotFound(new { message = "username ou password invalidos" });    
     if (await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false) != Microsoft.AspNetCore.Identity.SignInResult.Success)
         return Results.BadRequest("Deu merda");
     var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
@@ -89,7 +90,7 @@ app.MapPost("/login", async (
     return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
 });
 
-app.MapGet("/usuarios", (
+app.MapGet("/usuarios",[Authorize] (
     ClaimsPrincipal userPrincipal,
     [FromServices] UserManager<Usuario> userManager) =>
 {
@@ -103,24 +104,20 @@ app.MapDelete("/usuario", async (
 {    
     if (requestBody.TryGetProperty("id", out var idProperty) && idProperty.ValueKind == JsonValueKind.String)
     {
-        var id = idProperty.GetString();
-
-        var usuario = await userManager.FindByIdAsync(id);
+        var usuario = await userManager.FindByIdAsync(idProperty.GetString());
 
         if (usuario == null)
         {
-            return Results.NotFound($"Usuário com ID {id} não encontrado.");
+            return Results.NotFound($"Usuário  não encontrado.");
         }
 
-        var result = await userManager.DeleteAsync(usuario);
-
-        if (result.Succeeded)
+        if (await userManager.DeleteAsync(usuario) == IdentityResult.Success ) 
         {
-            return Results.Ok($"Usuário com ID {id} excluído com sucesso.");
+            return Results.Ok($"Usuário  excluído com sucesso.");
         }
         else
         {
-            return Results.BadRequest($"Falha ao excluir o usuário com ID {id}.");
+            return Results.BadRequest($"Falha ao excluir o usuário.");
         }
     }
     else
@@ -134,29 +131,20 @@ app.MapPut("/atualizar-dados-usuario", async (
     [FromServices] UserManager<Usuario> userManager,
     [FromBody] AtualizarUsuarioDTO dadosAtualizados) =>
 {
-
-    var userId = userPrincipal.FindFirstValue("Id");
-    // Obtém o usuário do banco de dados
-    var usuario = await userManager.FindByIdAsync(userId);
-
+    var usuario = await userManager.FindByIdAsync(userPrincipal.FindFirstValue("Id"));
     if (usuario == null)
     {
-        return Results.NotFound($"Usuário com ID {userId} não encontrado.");
+        return Results.NotFound($"Usuário  não encontrado.");
     }
-
-    // Atualiza as informações do usuário com base nos dados fornecidos no corpo da requisição
     usuario.UserName = dadosAtualizados.Username;
-
-    // Salva as alterações no banco de dados
     var result = await userManager.UpdateAsync(usuario);
-
     if (result.Succeeded)
     {
-        return Results.Ok($"Usuário com ID {userId} atualizado com sucesso.");
+        return Results.Ok($"Usuário  atualizado com sucesso.");
     }
     else
     {
-        return Results.BadRequest($"Falha ao atualizar o usuário com ID {userId}.");
+        return Results.BadRequest($"Falha ao atualizar o usuário.");
     }
 }).RequireAuthorization("User");
 
@@ -165,28 +153,23 @@ app.MapPut("/alterar-senha", async (
     [FromServices] UserManager<Usuario> userManager,
     [FromBody] AlterarSenhaDTO alterarSenhaDTO) =>
 {
-    var userId = userPrincipal.FindFirstValue("Id");
-    var usuario = await userManager.FindByIdAsync(userId);
+    var usuario = await userManager.FindByIdAsync(userPrincipal.FindFirstValue("Id"));
 
     if (usuario == null)
     {
-        return Results.NotFound($"Usuário com ID {userId} não encontrado.");
+        return Results.NotFound($"Usuário não encontrado.");
     }
-
-    // Verifique se a senha atual fornecida está correta
     var senhaAtualCorreta = await userManager.CheckPasswordAsync(usuario, alterarSenhaDTO.SenhaAtual);
 
     if (!senhaAtualCorreta)
     {
         return Results.BadRequest("Senha atual incorreta.");
     }
-
-    // Altere a senha
     var resultadoAlteracao = await userManager.ChangePasswordAsync(usuario, alterarSenhaDTO.SenhaAtual, alterarSenhaDTO.NovaSenha);
 
     if (resultadoAlteracao.Succeeded)
     {
-        return Results.Ok($"Senha do usuário com ID {userId} alterada com sucesso.");
+        return Results.Ok($"Senha do usuário  alterada com sucesso.");
     }
     else
     {
@@ -194,16 +177,13 @@ app.MapPut("/alterar-senha", async (
     }
 }).RequireAuthorization("User");
 
-
 app.Run();
 
 static async Task CriarPerfisUsuariosAsync(WebApplication app)
 {
     var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-    using (var scope = scopedFactory.CreateScope())
-    {
-        var service = scope.ServiceProvider.GetService<ISeedUserRoleInitial>();
-        await service.SeedRolesAsync();
-        await service.SeedUserAsync();
-    }
+    using var scope = scopedFactory.CreateScope();
+    var service = scope.ServiceProvider.GetService<ISeedUserRoleInitial>();
+    await service.SeedRolesAsync();
+    await service.SeedUserAsync();
 }
