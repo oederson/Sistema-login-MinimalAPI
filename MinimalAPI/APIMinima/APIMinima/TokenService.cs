@@ -25,7 +25,8 @@ namespace APIMinima
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256Signature),
+                Audience = "http://127.0.0.1:5173/"
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             ResponseModel res = new ResponseModel()

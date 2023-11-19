@@ -35,7 +35,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         IssuerSigningKey = new SymmetricSecurityKey(key),        
         ValidateIssuerSigningKey = false,
-        ValidateAudience = false,
+        ValidateAudience = true,
+        ValidAudience = "http://127.0.0.1:5173/"
     };
 });
 builder.Services.AddAuthorization(opts =>
@@ -70,7 +71,7 @@ app.MapPost("/registro", async (
         return Results.BadRequest("Usuario nao informado");
     if (await userManager.CreateAsync(mapper.Map<Usuario>(usuario), usuario.Password) != IdentityResult.Success)
         return Results.BadRequest("Usuario não pode ser cadastrado");
-    var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
+    var usuariobd = await userManager.FindByNameAsync(usuario.Username); 
     await userManager.AddToRoleAsync(usuariobd, "User");
     return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
 });
@@ -81,13 +82,11 @@ app.MapPost("/login", async (
     [FromServices] UserManager<Usuario> userManager) =>
 {   
     if (usuario == null)
-        return Results.NotFound(new { message = "username ou password invalidos" });    
-    if (await signInManager.PasswordSignInAsync(usuario.Username, usuario.Password, false, false) != Microsoft.AspNetCore.Identity.SignInResult.Success)
+        return Results.NotFound(new { message = "username ou password invalidos" });
+    var user = await userManager.FindByNameAsync(usuario.Username);
+    if (!await userManager.CheckPasswordAsync(user, usuario.Password))
         return Results.BadRequest("Deu merda");
-    var usuariobd = signInManager.UserManager.Users.FirstOrDefault(usuarioNoDb => usuarioNoDb.NormalizedUserName == usuario.Username);
-    //Desativa o cookie no cabeçalho de resposta 
-    signInManager.Context.Response.Cookies.Delete(".AspNetCore.Identity.Application");
-    return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
+    return Results.Ok(TokenService.GenerateToken(user, await userManager.GetRolesAsync(user)));
 });
 
 app.MapGet("/usuarios",[Authorize] (
