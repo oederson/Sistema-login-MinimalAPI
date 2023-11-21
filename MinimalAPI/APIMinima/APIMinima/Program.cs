@@ -74,6 +74,10 @@ app.Use(async (context, next) =>
     context.Response.Headers.Add("Date", dateTimeBrasilia.ToString("G"));
     await next();
 });
+app.UseRequestLocalization(new RequestLocalizationOptions
+{    
+    ApplyCurrentCultureToResponseHeaders = true
+});
 await CriarPerfisUsuariosAsync(app);
 
 app.MapPost("/registro", async (

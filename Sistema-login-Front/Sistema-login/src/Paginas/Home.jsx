@@ -44,10 +44,6 @@ function Home() {
   return (
     <div>
         Home
-        <button>
-            {currentUser == null ? (<Link to={"/login"}>LOGIN</Link>) : (<div onClick={handleLogOutClick}>Logout</div>)}
-            {}               
-        </button>
         {dataList.length == 0 ? <div > A lista de usuarios so é mostrada se for um admin e estiver logado</div> :<div>
             <ul>
                     {dataList.map(item => (

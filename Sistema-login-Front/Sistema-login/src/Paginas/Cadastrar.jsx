@@ -8,8 +8,6 @@ import { Link, useNavigate } from "react-router-dom";
 const Container = styled.div`
     width: 100%;
     height: 100%;
-
-    background-size:cover;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -17,17 +15,15 @@ const Container = styled.div`
 const Wrapper = styled.div`
     width: 40%;
     padding: 20px;
-    background-color: black;
-
 `;
 const Titulo = styled.h1`
     font-size: 24px;
     font-weight: 300;
-
 `;
 const Formulario = styled.form`
     display: flex;
     flex-wrap: wrap;
+    flex-direction: column;
 `;
 const Input = styled.input`
     flex:1;
@@ -47,8 +43,10 @@ const Botao = styled.button`
     color: white;
     cursor: pointer;
 `;
-const Error = styled.span`
-    color: red;
+const Botoes = styled.div`
+  display:flex;
+  justify-content: space-around;
+  height: 45px; 
 `;
 
 const Cadastrar = () => { 
@@ -122,11 +120,13 @@ const Cadastrar = () => {
                 />
                 
                 <Concordar>Criando uma conta estou ciente dos termos de utilização.Escrevendo mais um monte de coisas</Concordar>
-                
+                <Botoes>
                 <Botao type="submit">Criar conta</Botao>
-                
+                <Botao>
+                <Link to={"/"} style={{ textDecoration: 'none', color: "white"}}>Voltar</Link>
+                </Botao>
+                </Botoes>
             </Formulario>
-            <Link to={"/"}>Voltar</Link>
         </Wrapper>
     </Container>
   )
