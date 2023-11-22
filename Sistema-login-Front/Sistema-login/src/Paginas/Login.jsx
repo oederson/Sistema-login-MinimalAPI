@@ -52,23 +52,18 @@ const Error = styled.span`
     color: red;
 `;
 
-const Login = () => {
-    
+const Login = () => {    
     const [username, setUsuario] = useState("");
     const [password, setSenha] = useState("");
     const dispatch = useDispatch();
-    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
-    
+    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);    
     const navigate = useNavigate();
     const handleClick = async (e) => {
         e.preventDefault();
         var res = await axios.create({baseURL: "https://localhost:7023"}).post("/login", {username, password} );
         if(res != null){
         dispatch(loginUser({token: res.data.token, role:res.data.role }))
-        }
-
-        };
-      
+        }};      
     useEffect(() => {
        if(currentUser != null){
         navigate("/")
@@ -82,16 +77,13 @@ const Login = () => {
         <Formulario>
             <Input 
             placeholder="Nome de usuario" 
-            onChange={(e)=>setUsuario(e.target.value)}
-            />
+            onChange={(e)=>setUsuario(e.target.value)}/>
             <Input 
             placeholder="senha"
             type="password"
             autocomplete="current-password" 
-            onChange={(e)=>setSenha(e.target.value)}
-            />
-            <Botao onClick={handleClick} >Entrar</Botao>
-            
+            onChange={(e)=>setSenha(e.target.value)}/>
+            <Botao onClick={handleClick} >Entrar</Botao>            
             <Linka>Esqueceu a senha ?</Linka>
             <Link to="/cadastrar">Cadastrar um usuario</Link>            
         </Formulario>

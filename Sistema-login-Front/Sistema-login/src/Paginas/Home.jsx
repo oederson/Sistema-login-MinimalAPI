@@ -1,22 +1,13 @@
 import React from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { loginUser, logOutUser } from '../redux/user/actions';
-import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux'
 import { useEffect, useState } from "react";
 import axios from "axios";
 
 function Home() {
     const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
-    console.log(currentUser);
-    const dispatch = useDispatch();
+
     const [dataList, setDataList] = useState([]);
-    const handleLoginClick = () => {
-        dispatch(loginUser({token: "Vai receber o token", role:"role para controle no front" }))
-    }
-    const handleLogOutClick = () => {
-        setDataList([])
-        dispatch(logOutUser())
-    }
+
     const fetchData = async () => {
         try {
             if(currentUser != null){
@@ -35,8 +26,7 @@ function Home() {
         }
         }
     };
-    console.log(dataList)
-    console.log(dataList.length)
+
     useEffect(() => {
         fetchData();
     }, []); 
