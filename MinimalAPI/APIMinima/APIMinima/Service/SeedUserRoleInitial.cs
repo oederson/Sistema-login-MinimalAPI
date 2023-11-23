@@ -22,8 +22,16 @@ public class SeedUserRoleInitial : ISeedUserRoleInitial
             role.Name = "Admin";
             role.NormalizedName = "ADMIN";
             role.ConcurrencyStamp = Guid.NewGuid().ToString();
+            var roleResult = await _roleManager.CreateAsync(role);            
+        }
+        if (!await _roleManager.RoleExistsAsync("User"))
+        {
+            IdentityRole role = new IdentityRole();
+            role.Name = "User";
+            role.NormalizedName = "USER";
+            role.ConcurrencyStamp = Guid.NewGuid().ToString();
             var roleResult = await _roleManager.CreateAsync(role);
-            
+
         }
     }
     public async Task SeedUserAsync()

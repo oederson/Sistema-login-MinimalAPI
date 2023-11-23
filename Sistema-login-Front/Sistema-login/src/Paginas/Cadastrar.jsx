@@ -66,7 +66,6 @@ const Cadastrar = () => {
     const fazOsubmit = async(e) => {
         e.preventDefault();
         try{
-            console.log("Cheguei aqui");
             var res = await axios.create({ baseURL: "https://localhost:7023" }).post("/registro", {
             username: usuario.username,
             password: usuario.password,
