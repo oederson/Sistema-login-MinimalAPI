@@ -11,15 +11,13 @@
 using System;
 using System.Reflection;
 
-[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("9220345c-acce-4490-80fa-bc228159d0d1")]
-[assembly: System.Reflection.AssemblyCompanyAttribute("APIMinima")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("TestesApiMinima")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("APIMinima")]
-[assembly: System.Reflection.AssemblyTitleAttribute("APIMinima")]
+[assembly: System.Reflection.AssemblyProductAttribute("TestesApiMinima")]
+[assembly: System.Reflection.AssemblyTitleAttribute("TestesApiMinima")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestesApiMinima")]
 
 // Gerado pela classe WriteCodeFragment do MSBuild.
 

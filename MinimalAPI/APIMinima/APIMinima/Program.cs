@@ -83,3 +83,4 @@ static async Task CriarPerfisUsuariosAsync(WebApplication app)
     await service.SeedRolesAsync();
     await service.SeedUserAsync();
 }
+public partial class Program { }
