@@ -18,19 +18,23 @@ public class SeedUserRoleInitial : ISeedUserRoleInitial
 
         if (!await _roleManager.RoleExistsAsync("Admin"))
         {
-            IdentityRole role = new IdentityRole();
-            role.Name = "Admin";
-            role.NormalizedName = "ADMIN";
-            role.ConcurrencyStamp = Guid.NewGuid().ToString();
-            var roleResult = await _roleManager.CreateAsync(role);            
+            IdentityRole role = new()
+            {
+                Name = "Admin",
+                NormalizedName = "ADMIN",
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+            _ = await _roleManager.CreateAsync(role);
         }
         if (!await _roleManager.RoleExistsAsync("User"))
         {
-            IdentityRole role = new IdentityRole();
-            role.Name = "User";
-            role.NormalizedName = "USER";
-            role.ConcurrencyStamp = Guid.NewGuid().ToString();
-            var roleResult = await _roleManager.CreateAsync(role);
+            IdentityRole role = new()
+            {
+                Name = "User",
+                NormalizedName = "USER",
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+            _ = await _roleManager.CreateAsync(role);
 
         }
     }
@@ -38,15 +42,32 @@ public class SeedUserRoleInitial : ISeedUserRoleInitial
     {
         if (await _userManager.FindByNameAsync("Admin") == null)
         {
-            Usuario user = new Usuario();
-            user.UserName = "Admin";
-            user.Email = "emailadmin@emailadmin.com";
+            Usuario user = new()
+            {
+                UserName = "Admin",
+                Email = "emailadmin@emailadmin.com"
+            };
 
             IdentityResult result = await _userManager.CreateAsync(user, "Senha1234@");
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Admin");
                 
+            }
+        }
+        if (await _userManager.FindByNameAsync("UserPadrao") == null)
+        {
+            Usuario user = new()
+            {
+                UserName = "UserPadrao",
+                Email = "emailuser@emailuser.com"
+            };
+
+            IdentityResult result = await _userManager.CreateAsync(user, "Senha1234@");
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "User");
+
             }
         }
     }

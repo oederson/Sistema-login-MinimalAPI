@@ -19,15 +19,15 @@ public static class Endpoints
         [FromBody] CriarUsuarioDTO usuario,
         [FromServices] SignInManager<Usuario> signInManager,
         [FromServices] UserManager<Usuario> userManager,
-        [FromServices] IMapper mapper) =>
+        [FromServices] IMapper _mapper)=>
         {
-            if (usuario == null)
+            if (usuario.Username == "" || usuario.Password == "" || usuario.RePassword == "")
                 return Results.BadRequest("Usuario nao informado");
-            if (await userManager.CreateAsync(mapper.Map<Usuario>(usuario), usuario.Password) != IdentityResult.Success)
+            if (await userManager.CreateAsync(_mapper.Map<Usuario>(usuario), usuario.Password) != IdentityResult.Success)
                 return Results.BadRequest("Usuario não pode ser cadastrado");
             var usuariobd = await userManager.FindByNameAsync(usuario.Username);
             await userManager.AddToRoleAsync(usuariobd, "User");
-            return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
+            return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));            
         });
 
         app.MapPost("/login", async (
