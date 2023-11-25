@@ -106,6 +106,5 @@ public static class Endpoints
             else
                 return Results.BadRequest("Falha ao alterar a senha. Verifique os requisitos de senha.");
         }).RequireAuthorization("User");
-
     }
 }

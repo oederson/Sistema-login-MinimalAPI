@@ -1,7 +1,6 @@
 ﻿using APIMinima.Data.DTO;
 using APIMinima.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -102,21 +101,34 @@ public class SistemaLoginApiIntegracaoTestes
     public async Task DeletarUsuarioComSucesso()
     {
         // Arrange
-        var token = await PegaToken("Admin", "Senha1234@");
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var token = await PegaToken("Admin", "Senha1234@");        
         var idUser = await PegaId();
-
-        // Criação da mensagem de requisição com o corpo
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        // Cria mensagem de requisição com o corpo
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/usuario")
         {
-            Content = new StringContent(JsonConvert.SerializeObject(new UserDelete { Id = idUser }), Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonConvert.SerializeObject(new UserDelete { id = idUser }), Encoding.UTF8, "application/json")
         };
-
         // Act
         var response = await _client.SendAsync(request);
-
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+    [Test]
+    public async Task DeletarUsuarioNaoDeveDeletarQuandoARoleForUser()
+    {
+        // Arrange
+        var token = await PegaToken("UserPadrao", "Senha1234@");
+        var idUser = await PegaId();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/usuario")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(new UserDelete { id = idUser }), Encoding.UTF8, "application/json")
+        };
+        // Act
+        var response = await _client.SendAsync(request);
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
     private async Task<string> PegaToken(string username, string password)
@@ -158,6 +170,6 @@ public class SistemaLoginApiIntegracaoTestes
     }
     public class UserDelete 
     {
-        public string Id { get; set; }
+        public string id { get; set; }
     }
 }
