@@ -19,15 +19,17 @@ public static class Endpoints
         [FromBody] CriarUsuarioDTO usuario,
         [FromServices] SignInManager<Usuario> signInManager,
         [FromServices] UserManager<Usuario> userManager,
-        [FromServices] IMapper _mapper)=>
-        {
+        [FromServices] IMapper _mapper) =>{
+            try{ 
             if (usuario.Username == "" || usuario.Password == "" || usuario.RePassword == "")
                 return Results.BadRequest("Usuario nao informado");
             if (await userManager.CreateAsync(_mapper.Map<Usuario>(usuario), usuario.Password) != IdentityResult.Success)
                 return Results.BadRequest("Usuario não pode ser cadastrado");
-            var usuariobd = await userManager.FindByNameAsync(usuario.Username);
-            await userManager.AddToRoleAsync(usuariobd, "User");
-            return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));            
+            Usuario? usuariobd = await userManager.FindByNameAsync(usuario.Username);
+            _ = await userManager.AddToRoleAsync(usuariobd, "User");
+            return Results.Ok(TokenService.GenerateToken(usuariobd, await userManager.GetRolesAsync(usuariobd)));
+            }catch (Exception ex) {  
+                return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
         });
 
         app.MapPost("/login", async (
@@ -35,26 +37,35 @@ public static class Endpoints
         [FromServices] SignInManager<Usuario> signInManager,
         [FromServices] UserManager<Usuario> userManager) =>
         {
+            try{
             if (usuario == null)
                 return Results.NotFound(new { message = "username ou password invalidos" });
             var user = await userManager.FindByNameAsync(usuario.Username);
             if (!await userManager.CheckPasswordAsync(user, usuario.Password))
                 return Results.BadRequest("Deu merda");
             return Results.Ok(TokenService.GenerateToken(user, await userManager.GetRolesAsync(user)));
+            }
+            catch (Exception ex){
+                return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
         });
 
         app.MapGet("/usuarios", [Authorize] (
         ClaimsPrincipal userPrincipal,
         [FromServices] UserManager<Usuario> userManager) =>
         {
-            return Results.Ok(userManager.Users.ToList());
-        }).RequireAuthorization("Admin");
+            try
+            {
+                return Results.Ok(userManager.Users.ToList());
+            }catch (Exception ex) {
+                return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
+    }).RequireAuthorization("Admin");
 
         app.MapDelete("/usuario", [Authorize] async (
         ClaimsPrincipal usePrincipal,
         [FromBody] JsonElement requestBody,
         [FromServices] UserManager<Usuario> userManager) =>
         {
+            try { 
             if (requestBody.TryGetProperty("id", out var idProperty) && idProperty.ValueKind == JsonValueKind.String)
             {
                 var usuario = await userManager.FindByIdAsync(idProperty.GetString());
@@ -67,13 +78,16 @@ public static class Endpoints
             }
             else
                 return Results.BadRequest("Corpo da solicitação inválido. Certifique-se de incluir uma propriedade 'id' válida.");
-        }).RequireAuthorization("Admin");
+        }catch (Exception ex) {
+            return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
+    }).RequireAuthorization("Admin");
 
         app.MapPut("/atualizar-dados-usuario", [Authorize] async (
         ClaimsPrincipal userPrincipal,
         [FromServices] UserManager<Usuario> userManager,
         [FromBody] AtualizarUsuarioDTO dadosParaAtualizar) =>
         {
+         try { 
             if (dadosParaAtualizar.Username.IsNullOrEmpty())
                 return Results.BadRequest($"Falha ao atualizar o usuário.Dados nulos ou vazios!");
             else
@@ -87,13 +101,16 @@ public static class Endpoints
                 }
                 return Results.NotFound($"Usuário  não encontrado.");
             }
-        }).RequireAuthorization("User");
+          }catch (Exception ex) {
+            return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
+    }).RequireAuthorization("User");
 
         app.MapPut("/alterar-senha", [Authorize] async (
         ClaimsPrincipal userPrincipal,
         [FromServices] UserManager<Usuario> userManager,
         [FromBody] AlterarSenhaDTO alterarSenhaDTO) =>
         {
+         try { 
             var usuario = await userManager.FindByIdAsync(userPrincipal.FindFirstValue("Id"));
             if (usuario == null)
                 return Results.NotFound($"Usuário não encontrado.");
@@ -105,6 +122,8 @@ public static class Endpoints
                 return Results.Ok($"Senha do usuário  alterada com sucesso.");
             else
                 return Results.BadRequest("Falha ao alterar a senha. Verifique os requisitos de senha.");
-        }).RequireAuthorization("User");
+         }catch (Exception ex) {
+            return Results.BadRequest($"Erro inesperado no servidor : {ex}");}
+    }).RequireAuthorization("User");
     }
 }
