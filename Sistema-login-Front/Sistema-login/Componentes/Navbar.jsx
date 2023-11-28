@@ -1,8 +1,9 @@
 
 import styled  from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { logOutUser } from '../src/redux/user/actions';
+import { useEffect, useState } from 'react';
 
 const Container = styled.div`
     width: 100%;
@@ -118,28 +119,38 @@ const Logomarca = styled.img`
 
 const NavBar = () => {
     const dispatch = useDispatch();
-    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer); 
+    const { currentUser } = useSelector(rootReducer => rootReducer.userReducer);
+    const [logOutUsuario, setLogout] = useState("");
+    const navigate = useNavigate(); 
     const handleLogOutClick = () => {
-        dispatch(logOutUser())
+        dispatch(logOutUser()
+        ,setLogout("1")
+        )
     }
-    
+    useEffect(() => {
+        if(logOutUsuario != "")
+        {
+            navigate("/")  
+        }
+     }, [logOutUsuario]); 
+  
     
     const oQueFazerNaBarraDeNagevacao = () => {
         if(currentUser != null){
             return(<Container>
                         <Wrapper>
                            <Esquerda>
-                            <Link to= "/" style={{ textDecoration: 'none' }}>
+                            <Link to= {currentUser.role == "Admin" ? "/admin" : "/"} style={{ textDecoration: 'none' }}>
                              <a>{currentUser.role}</a>
                              </Link>
                            </Esquerda>
                             <Direita>
                                 <ItemMenu>
-                                    <Botao>
-                                <div onClick={handleLogOutClick}>Logout</div>
+                                <Botao>
+                                <div onClick={handleLogOutClick }>Logout</div>
+                                
                                 </Botao>
                                 </ItemMenu>
-
                             </Direita>
                         </Wrapper>
                         <hr/>  
