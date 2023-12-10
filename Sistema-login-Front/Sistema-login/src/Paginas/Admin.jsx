@@ -40,7 +40,8 @@ function Admin() {
         {dataList.length == 0 ? <div > A lista de usuarios so é mostrada se for um admin e estiver logado</div> :<div>
             <ul>
                 {dataList.map(item => (
-                <li key={item.id}>{item.userName}</li> 
+                <li key={item.id}>{item.userName}<button>Editar</button></li>
+                
                  ))}
                 </ul>
             </div>
